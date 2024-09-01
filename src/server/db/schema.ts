@@ -10,21 +10,48 @@ import { index, int, sqliteTableCreator, text } from "drizzle-orm/sqlite-core";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = sqliteTableCreator((name) => `request-system_${name}`);
+export const createTable = sqliteTableCreator((name) => `${name}`);
 
-export const posts = createTable(
-  "post",
+export const users = createTable(
+  "user",
   {
-    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 256 }),
-    createdAt: int("created_at", { mode: "timestamp" })
-      .default(sql`(unixepoch())`)
+    id: int("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    role: text("role", { enum: ["user", "admin"] })
+      .default("user")
       .notNull(),
-    updatedAt: int("updated_at", { mode: "timestamp" }).$onUpdate(
-      () => new Date()
-    ),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
-  (example) => ({
-    nameIndex: index("name_idx").on(example.name),
-  })
+  (table) => ({
+    emailIdx: index("email_idx").on(table.email),
+  }),
+);
+
+export const requests = createTable(
+  "request",
+  {
+    id: int("id").primaryKey({ autoIncrement: true }),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    priority: text("priority", { enum: ["low", "medium", "high"] }).notNull(),
+    status: text("status", { enum: ["pending", "approved", "rejected"] })
+      .default("pending")
+      .notNull(),
+    userId: int("user_id")
+      .notNull()
+      .references(() => users.id),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: int("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    userIdIdx: index("user_id_idx").on(table.userId),
+    statusIdx: index("status_idx").on(table.status),
+  }),
 );

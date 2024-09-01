@@ -1,22 +1,14 @@
 "use client";
 import React, { useState } from "react";
 import Sidebar from "~/components/Sidebar";
+import { api } from "~/trpc/react";
 
-const requests = [
-  {
-    id: 1,
-    title: "Request 1",
-    description: "Description of request 1",
-    priority: "high",
-  },
-  {
-    id: 2,
-    title: "Request 2",
-    description: "Description of request 2",
-    priority: "medium",
-  },
-  // Add more requests as needed
-];
+type Request = {
+  id: number;
+  title: string;
+  description: string;
+  priority: string;
+};
 
 const getPriorityBadge = (priority: string) => {
   switch (priority) {
@@ -40,7 +32,16 @@ const getPriorityBadge = (priority: string) => {
 };
 
 export default function AdminPage() {
-  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
+
+  const {
+    data: requests = [],
+    isLoading,
+    error,
+  } = api.request.getAll.useQuery();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading requests</div>;
 
   return (
     <div className="flex h-screen gap-4 bg-gradient-to-r from-white via-blue-100 to-purple-200 p-4">
