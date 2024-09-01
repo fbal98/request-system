@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  @apply bg-gradient-to-r from-white via-blue-100 to-purple-200 min-h-screen;
+  height: 100%;
+  margin: 0;
+}
